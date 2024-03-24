@@ -2,7 +2,15 @@ import pygame
 import sys
 import numpy as np
 import graham_scan
+# numpy-1.26.4 pygame-2.5.2
 
+
+def generate_uniform_points(min, max, count):
+    return np.random.uniform(minv,maxv,size=(count,2))
+
+def generate_gaussian_points(min, max, count):
+    return np.random.normal(minv,maxv,size=(count,2))
+    
 # Function to find orientation of triplet (p, q, r)
 # The function returns the following values:
 # 0 : Collinear points
@@ -60,10 +68,10 @@ def convex_hull_graham_scan(points):
 
 # Function to scale the coordinates to fit within the window size
 def scale_points(points, width, height):
-    min_x = min(points, key=lambda p: p[0])[0]
-    max_x = max(points, key=lambda p: p[0])[0]
-    min_y = min(points, key=lambda p: p[1])[1]
-    max_y = max(points, key=lambda p: p[1])[1]
+    min_x = np.min(points,0)[0]
+    max_x = np.max(points,0)[0]
+    min_y = np.min(points,0)[1]
+    max_y = np.max(points,0)[0]
     
     scaled_points = []
     for x, y in points:
@@ -91,12 +99,12 @@ def plot_convex_hull(points, convex_hull):
         pygame.draw.circle(screen, (0, 0, 255), point, 5)
     
     # Draw convex hull
-    for i in range(len(scaled_convex_hull)):
-        pygame.draw.line(screen, (255, 0, 0), scaled_convex_hull[i], scaled_convex_hull[(i + 1) % len(scaled_convex_hull)], 2)
-    
+    #for i in range(len(scaled_convex_hull)):
+        #pygame.draw.line(screen, (255, 0, 0), scaled_convex_hull[i], scaled_convex_hull[(i + 1) % len(scaled_convex_hull)], 2)
+
     # Draw convex hull points
-    for point in scaled_convex_hull:
-        pygame.draw.circle(screen, (255, 0, 0), point, 5)
+    #for point in scaled_convex_hull:
+        #pygame.draw.circle(screen, (255, 0, 0), point, 5)
     
     # Main loop
     running = True
@@ -111,14 +119,13 @@ def plot_convex_hull(points, convex_hull):
 # Example usage
 if __name__ == "__main__":
     # Example set of points
-    r = 100
-    pointsx = np.random.default_rng().uniform(0, 10000, r)
-    pointsy = np.random.default_rng().uniform(0, 10000, r)
+    r = 5000
+    minv = 100
+    maxv = 1000000
 
-    points = []
+    points = generate_gaussian_points(minv,maxv,r)
+    #points = generate_gaussian_points(minv, maxv, r)
 
-    for i in range(r):
-        points.append((pointsx[i],pointsy[i]))
 
     
     # Find the convex hull using Graham's scan algorithm
