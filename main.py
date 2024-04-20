@@ -85,10 +85,16 @@ def scale_points(points, width, height):
 def plot_convex_hull(points, convex_hull):
     pygame.init()
     
+    
     # Set window dimensions
     width, height = 1600, 900
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Convex Hull Visualization")
+
+    # draw surface
+    transparent_surface = pygame.Surface((width, height), pygame.SRCALPHA)
+    transparent_surface.fill((255, 255, 255, 0))  # 128 is the alpha value, 0 is fully transparent and 255 is fully opaque
+
     
     # Scale points to fit within the window size
     scaled_points = scale_points(points, width, height)
@@ -99,12 +105,17 @@ def plot_convex_hull(points, convex_hull):
         pygame.draw.circle(screen, (0, 0, 255), point, 5)
     
     # Draw convex hull
-    #for i in range(len(scaled_convex_hull)):
-        #pygame.draw.line(screen, (255, 0, 0), scaled_convex_hull[i], scaled_convex_hull[(i + 1) % len(scaled_convex_hull)], 2)
+    for i in range(len(scaled_convex_hull)):
+        pygame.draw.line(transparent_surface, (255, 0, 0), scaled_convex_hull[i], scaled_convex_hull[(i + 1) % len(scaled_convex_hull)], 2)
 
     # Draw convex hull points
     #for point in scaled_convex_hull:
         #pygame.draw.circle(screen, (255, 0, 0), point, 5)
+
+    current_frame = pygame.Surface((width, height))
+    current_frame.blit(screen, (0, 0))
+    screen.blit(transparent_surface,(0,0))
+    screen.blit(current_frame,(0,0))
     
     # Main loop
     running = True
