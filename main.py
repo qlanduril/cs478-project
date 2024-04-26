@@ -93,7 +93,7 @@ def plot_convex_hull(points, convex_hull):
 
     # draw surface
     transparent_surface = pygame.Surface((width, height), pygame.SRCALPHA)
-    transparent_surface.fill((255, 255, 255, 0))  # 128 is the alpha value, 0 is fully transparent and 255 is fully opaque
+    transparent_surface.fill((255, 255, 255, 0))  # last one is the alpha value, 0 is fully transparent and 255 is fully opaque
 
     
     # Scale points to fit within the window size
