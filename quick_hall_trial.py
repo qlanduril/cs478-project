@@ -1,99 +1,101 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import math
+from matplotlib.animation import FuncAnimation
 
-# Stores the result (points of convex hull)
-hull = set()
+# Initialize the figure and axis
+fig, ax = plt.subplots(figsize=(10, 6))
 
-# Returns the side of point p with respect to line
-# joining points p1 and p2.
-def findSide(p1, p2, p):
-    val = (p[1] - p1[1]) * (p2[0] - p1[0]) - (p2[1] - p1[1]) * (p[0] - p1[0])
-    if val > 0:
-        return 1
-    if val < 0:
-        return -1
-    return 0
+# A function to compute the distance of a point from a line (line_1 to line_2)
+def distance(line_1, line_2, point):
+    return abs((line_2[1] - line_1[1]) * point[0] - (line_2[0] - line_1[0]) * point[1] + line_2[0] * line_1[1] - line_2[1] * line_1[0]) / math.sqrt((line_2[1] - line_1[1]) ** 2 + (line_2[0] - line_1[0]) ** 2)
 
-# Returns a value proportional to the distance
-# between the point p and the line joining the
-# points p1 and p2
-def lineDist(p1, p2, p):
-    return abs((p[1] - p1[1]) * (p2[0] - p1[0]) - (p2[1] - p1[1]) * (p[0] - p1[0]))
+# A function to determine if points are to the right of a line
+def points_to_right(points, line_1, line_2):
+    def is_right(p):
+        return (line_2[0] - line_1[0]) * (p[1] - line_1[1]) - (line_2[1] - line_1[1]) * (p[0] - line_1[0]) > 0
+    return [p for p in points if is_right(p)]
 
-# End points of line L are p1 and p2. side can have value
-# 1 or -1 specifying each of the parts made by the line L
-def quickHull(a, n, p1, p2, side):
-    ind = -1
-    max_dist = 0
+# List to store frames for animation
+frames = []
 
-    # Finding the point with maximum distance
-    # from L and also on the specified side of L.
-    for i in range(n):
-        temp = lineDist(p1, p2, a[i])
-        if (findSide(p1, p2, a[i]) == side) and (temp > max_dist):
-            ind = i
-            max_dist = temp
+def find_hull(points, line_1, line_2):
+    if len(points) == 0:
+        return [line_1]
+    
+    furthest = None
+    furthest_distance = -math.inf
+    for point in points:
+        distance_from_line = distance(line_1, line_2, point)
+        if distance_from_line > furthest_distance:
+            furthest = point
+            furthest_distance = distance_from_line
+    
+    # Add a frame for the current step
+    frames.append((line_1, line_2, furthest, points.copy()))
+    
+    s1 = points_to_right(points, line_1, furthest)
+    s2 = points_to_right(points, furthest, line_2)
 
-    # If no point is found, add the end points
-    # of L to the convex hull.
-    if ind == -1:
-        hull.add(tuple(p1))
-        hull.add(tuple(p2))
-        return
+    s1_hull = find_hull(s1, line_1, furthest)
+    s2_hull = find_hull(s2, furthest, line_2)
 
-    # Recur for the two parts divided by a[ind]
-    quickHull(a, n, a[ind], p1, -findSide(a[ind], p1, p2))
-    quickHull(a, n, a[ind], p2, -findSide(a[ind], p2, p1))
+    return s1_hull + s2_hull
 
-def printHull(a, n):
-    # Sort the points based on x-coordinate
-    a.sort(key=lambda x: x[0])
+def quickhull(points):
+    min_x = min(points, key=lambda item: item[0])
+    max_x = max(points, key=lambda item: item[0])
 
-    # Finding the point with minimum and
-    # maximum x-coordinate
-    min_x = 0
-    max_x = 0
-    for i in range(1, n):
-        if a[i][0] < a[min_x][0]:
-            min_x = i
-        if a[i][0] > a[max_x][0]:
-            max_x = i
+    points.remove(min_x)
+    points.remove(max_x)
 
-    # Recursively find convex hull points on
-    # one side of line joining a[min_x] and
-    # a[max_x]
-    quickHull(a, n, a[min_x], a[max_x], 1)
+    s1 = points_to_right(points, min_x, max_x)
+    s2 = points_to_right(points, max_x, min_x)
 
-    # Recursively find convex hull points on
-    # other side of line joining a[min_x] and
-    # a[max_x]
-    quickHull(a, n, a[min_x], a[max_x], -1)
+    s1_hull = find_hull(s1, min_x, max_x)
+    s2_hull = find_hull(s2, max_x, min_x)
 
-    # Sort the points in the hull to be in counterclockwise order
-    hull_points = list(hull)
-    centroid = np.mean(hull_points, axis=0)
-    hull_points.sort(key=lambda p: np.arctan2(p[1] - centroid[1], p[0] - centroid[0]))
+    points.append(min_x)
+    points.append(max_x)
 
-    print("The points in Convex Hull are:")
-    for element in hull_points:
-        print("(", element[0], ",", element[1], ") ", end=" ")
+    return np.array(s1_hull + [max_x] + s2_hull)
 
-    return hull_points
+def animate(i):
+    ax.clear()
+    # Plot all points
+    ax.scatter(points[:, 0], points[:, 1], color='blue')
+    
+    # Draw the lines and points for each frame
+    for j in range(i + 1):
+        line_1, line_2, furthest, current_points = frames[j]
+        ax.plot([line_1[0], line_2[0]], [line_1[1], line_2[1]], 'g-', lw=2)
+        if furthest:
+            ax.plot([line_1[0], furthest[0]], [line_1[1], furthest[1]], 'r--', lw=2)
+            ax.plot([line_2[0], furthest[0]], [line_2[1], furthest[1]], 'r--', lw=2)
+            ax.scatter([furthest[0]], [furthest[1]], color='red')
+            triangle = np.array([line_1, line_2, furthest, line_1])
+            ax.plot(triangle[:, 0], triangle[:, 1], 'r-', lw=1)
 
 def visualize(points, hull):
-    points = np.array(points)  # Convert to NumPy array
-    hull = np.array(hull)  # Convert hull to NumPy array
-    plt.figure(figsize=(10, 6))
-    plt.scatter(points[:, 0], points[:, 1], color='blue')  # all points
-    # Ensure the hull is closed by connecting the last point back to the first
-    hull_closed = np.append(hull, [hull[0]], axis=0)
-    plt.plot(hull_closed[:, 0], hull_closed[:, 1], 'r-', lw=2)  # hull lines
-    plt.plot(hull[:, 0], hull[:, 1], 'ro')  # hull points
+    global frames
+    frames = []
+    
+    hull_points = quickhull(points.tolist())
+    
+    ani = FuncAnimation(fig, animate, frames=len(frames), interval=1000, repeat=False)
     plt.show()
 
-# Driver code
-a = [[0, 3], [1, 1], [2, 2], [4, 4],
-     [0, 0], [1, 2], [3, 1], [3, 3]]
-n = len(a)
-hull_points = printHull(a, n)
-visualize(a, hull_points)
+def generate_points(distribution, n):
+    if distribution == 'gaussian':
+        return np.random.normal(0, 1, (n, 2))
+    elif distribution == 'uniform':
+        return np.random.uniform(-10, 10, (n, 2))
+
+# Generate points
+points = generate_points('uniform', 100)
+
+# Compute the Convex Hull using the QuickHull algorithm and visualize
+hull = quickhull(points.tolist())
+
+# Visualize the result
+visualize(points, hull)
