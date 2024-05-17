@@ -57,7 +57,7 @@ def visualize(points, hull):
     plt.show()
 
 # Generate points and compute the Convex Hull using the Jarvis March algorithm with speed control
-points = generate_points('uniform', 100)
+points = generate_points('uniform', 1000)
 speed = 0.05  # Adjust this value to make the visualization faster or slower
 hull = jarvis_march(points, speed)
 visualize(points, hull)

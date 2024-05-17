@@ -139,11 +139,19 @@ def visualize(points, hull):
     plt.plot(hull[:, 0], hull[:, 1], 'ro')  # hull points
     plt.show()
 
-# Driver code
+# Point generation function
+def generate_points(distribution, n):
+    if distribution == 'gaussian':
+        return np.random.normal(0, 1, (n, 2))
+    elif distribution == 'uniform':
+        return np.random.uniform(-10, 10, (n, 2))
+
 if __name__ == '__main__':
-    a = [[0, 8], [1, 1], [2, 2], [4, 4],
-         [0, 0], [1, 2], [3, 1], [3, 3]]
-    n = len(a)
-    a.sort()
-    hull_points = divide(a)
-    visualize(a, hull_points)
+    n = 100  # Number of points
+    distribution = 'uniform'  # Choose 'gaussian' or 'uniform'
+    points = generate_points(distribution, n)
+    points = points.tolist()  # Convert NumPy array to list of lists
+    points.sort()  # Sort the points
+
+    hull_points = divide(points)
+    visualize(points, hull_points)
