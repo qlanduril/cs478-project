@@ -1,8 +1,11 @@
-# graham scan animation
+#graham scan animation
 run `python3 ./graham_scan_trial.py`
+
 # jarvis' march animation
 run `python3 ./jarvis_march_trial.py`
+
 # merge hull animation
 run `python3 ./merge_hull_trial.py`
+
 # quick hull animation
 run `python3 ./quick_hall_trial.py`
