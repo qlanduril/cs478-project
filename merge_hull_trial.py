@@ -1,9 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 from functools import cmp_to_key
 
 # Stores the center of polygon (It is made global because it is used in the compare function)
 mid = [0, 0]
+
+# List to store intermediate hulls for visualization
+intermediate_hulls = []
 
 # Determines the quadrant of the point (used in compare())
 def quad(p):
@@ -40,6 +44,7 @@ def compare(p1, q1):
 
 # Finds upper tangent of two polygons 'a' and 'b' represented as two vectors
 def merger(a, b):
+    global intermediate_hulls
     n1, n2 = len(a), len(b)
     ia, ib = 0, 0
     for i in range(1, n1):
@@ -79,6 +84,8 @@ def merger(a, b):
     while ind != upperb:
         ind = (ind+1) % n2
         ret.append(b[ind])
+
+    intermediate_hulls.append(ret.copy())  # Save intermediate hull
     return ret
 
 # Brute force algorithm to find convex hull for a set of less than 6 points
@@ -129,14 +136,25 @@ def divide(a):
     return merger(left_hull, right_hull)
 
 # Visualization function
-def visualize(points, hull):
+def animate_convex_hull(points, hull, intermediate_hulls):
     points = np.array(points)  # Convert to NumPy array
-    hull = np.array(hull)  # Convert hull to NumPy array
-    plt.figure(figsize=(10, 6))
-    plt.scatter(points[:, 0], points[:, 1], color='blue')  # all points
-    hull_closed = np.append(hull, [hull[0]], axis=0)  # Ensure the hull is closed
-    plt.plot(hull_closed[:, 0], hull_closed[:, 1], 'r-', lw=2)  # hull lines
-    plt.plot(hull[:, 0], hull[:, 1], 'ro')  # hull points
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    def update(frame):
+        ax.clear()
+        ax.scatter(points[:, 0], points[:, 1], color='blue')  # all points
+        if frame < len(intermediate_hulls):
+            ihull = np.array(intermediate_hulls[frame])
+            hull_closed = np.append(ihull, [ihull[0]], axis=0)
+            ax.plot(hull_closed[:, 0], hull_closed[:, 1], linestyle='--', marker='o', label=f'Step {frame+1}')
+        if frame == len(intermediate_hulls):
+            final_hull = np.array(hull)
+            hull_closed = np.append(final_hull, [final_hull[0]], axis=0)
+            ax.plot(hull_closed[:, 0], hull_closed[:, 1], 'r-', lw=2, label='Final Hull')  # hull lines
+            ax.plot(final_hull[:, 0], final_hull[:, 1], 'ro')  # hull points
+        ax.legend()
+
+    anim = FuncAnimation(fig, update, frames=len(intermediate_hulls) + 1, repeat=False)
     plt.show()
 
 # Point generation function
@@ -147,11 +165,11 @@ def generate_points(distribution, n):
         return np.random.uniform(-10, 10, (n, 2))
 
 if __name__ == '__main__':
-    n = 100  # Number of points
+    n = 100  # Number of points (reduced for clarity in step-by-step visualization)
     distribution = 'uniform'  # Choose 'gaussian' or 'uniform'
     points = generate_points(distribution, n)
     points = points.tolist()  # Convert NumPy array to list of lists
     points.sort()  # Sort the points
 
     hull_points = divide(points)
-    visualize(points, hull_points)
+    animate_convex_hull(points, hull_points, intermediate_hulls)
