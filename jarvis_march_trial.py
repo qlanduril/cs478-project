@@ -45,4 +45,5 @@ def visualize(points, hull):
 # Generate points and compute the Convex Hull using the Jarvis March algorithm
 points = generate_points('uniform', 100)
 hull = jarvis_march(points)
-visualize(points, hull)
+print(hull)
+"""visualize(points, hull)"""

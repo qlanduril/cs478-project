@@ -56,4 +56,5 @@ def visualize(points, hull):
 
 points = generate_points('uniform', 100)
 hull = graham_scan(points)
-visualize(points, hull)
+print(hull)
+"""visualize(points, hull)"""
